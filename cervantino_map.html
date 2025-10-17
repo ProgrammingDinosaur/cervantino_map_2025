@@ -48,11 +48,9 @@
     }
 
     const map = L.map('map');
-    const lats = data.map(d => +d.Latitude);
-    const lngs = data.map(d => +d.Longitude);
-    const avgLat = lats.reduce((a,b)=>a+b,0) / lats.length;
-    const avgLng = lngs.reduce((a,b)=>a+b,0) / lngs.length;
-    map.setView([avgLat, avgLng], 14);
+    const cityCenter = [21.0169, -101.2574];
+    const cityBounds = L.latLngBounds([[20.9800, -101.3300],[21.0700, -101.2000]]);
+    map.setView(cityCenter, 14);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
@@ -125,16 +123,29 @@
       document.getElementById('visibleCount').textContent = visible;
 
       if (visible > 0) {
-        const group = L.featureGroup(markers.filter(m => cluster.hasLayer(m)));
+        const inCity = markers.filter(m => cluster.hasLayer(m) && cityBounds.contains(m.getLatLng()));
+        const group = L.featureGroup(inCity);
         map.fitBounds(group.getBounds().pad(0.2));
       } else {
-        map.setView([avgLat, avgLng], 14);
+        map.setView(cityCenter, 14);
       }
     }
 
     document.getElementById('timePicker').addEventListener('change', applyFilters);
     document.getElementById('categorySelect').addEventListener('change', applyFilters);
     applyFilters();
+    // Special AirBnB marker
+    const airbnbLat = 21.018626707793082;
+    const airbnbLng = -101.25655677613729;
+    const airbnbIcon = L.icon({
+      iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
+      iconSize: [45, 45],
+      iconAnchor: [22, 45],
+      popupAnchor: [0, -45]
+    });
+    const airbnbMarker = L.marker([airbnbLat, airbnbLng], { icon: airbnbIcon }).addTo(map);
+    airbnbMarker.bindPopup('<b>AirBnB Location</b>');
+
   </script>
 </body>
 </html>
